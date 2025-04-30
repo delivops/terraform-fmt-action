@@ -48,6 +48,7 @@ runs:
       working-directory: ${{ github.event.inputs.working_directory }}
 
     - name: Commit and Push changes
+      shell: bash
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
