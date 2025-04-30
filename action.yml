@@ -34,18 +34,18 @@ runs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: "arn:aws:iam::${{ github.event.inputs.aws_account_id }}:role/${{ github.event.inputs.aws_role }}"
-        aws-region: ${{ github.event.inputs.aws_region }}
+        role-to-assume: "arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.aws_role }}"
+        aws-region: ${{ inputs.aws_region }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: ${{ github.event.inputs.terraform_version }}
+        terraform_version: ${{ inputs.terraform_version }}
 
     - name: Terraform fmt
       run: terraform fmt -recursive
       shell: bash
-      working-directory: ${{ github.event.inputs.working_directory }}
+      working-directory: ${{ inputs.working_directory }}
 
     - name: Commit and Push changes
       shell: bash
@@ -60,4 +60,4 @@ runs:
           git push
         fi
       env:
-        GITHUB_TOKEN: ${{ github.event.inputs.github_token }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
