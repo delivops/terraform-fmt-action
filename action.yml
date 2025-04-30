@@ -5,9 +5,6 @@ branding:
   icon: 'cloud'
   color: 'purple'
 
-on:
-  workflow_dispatch:
-
 inputs:
   working_directory:
     description: 'Directory containing Terraform configuration'
@@ -28,41 +25,38 @@ inputs:
     description: 'GitHub token'
     required: true
 
-jobs:
-  terraform-fmt:
-    runs-on: ubuntu-latest
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ github.event.inputs.github_token }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: "arn:aws:iam::${{ github.event.inputs.aws_account_id }}:role/${{ github.event.inputs.aws_role }}"
+        aws-region: ${{ github.event.inputs.aws_region }}
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: "arn:aws:iam::${{ github.event.inputs.aws_account_id }}:role/${{ github.event.inputs.aws_role }}"
-          aws-region: ${{ github.event.inputs.aws_region }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ github.event.inputs.terraform_version }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ github.event.inputs.terraform_version }}
+    - name: Terraform fmt
+      run: terraform fmt -recursive
+      shell: bash
+      working-directory: ${{ github.event.inputs.working_directory }}
 
-      - name: Terraform fmt
-        run: terraform fmt -recursive
-        working-directory: ${{ github.event.inputs.working_directory }}
-
-      - name: Commit and Push changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "chore(terraform): auto-fmt via GitHub Action"
-            git push
-          fi
-        env:
-          GITHUB_TOKEN: ${{ github.event.inputs.github_token }}
+    - name: Commit and Push changes
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+        else
+          git commit -m "chore(terraform): auto-fmt via GitHub Action"
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ github.event.inputs.github_token }}
