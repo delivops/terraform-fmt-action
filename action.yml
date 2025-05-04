@@ -10,12 +10,6 @@ inputs:
     description: 'Directory containing Terraform configuration'
     required: false
     default: './'
-  aws_region:
-    description: 'AWS Region'
-    required: true
-  aws_role:
-    description: 'AWS Role to assume for authentication'
-    required: true
   terraform_version:
     description: 'Terraform version to install'
     required: false
@@ -31,12 +25,6 @@ runs:
   steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: "arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.aws_role }}"
-        aws-region: ${{ inputs.aws_region }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
